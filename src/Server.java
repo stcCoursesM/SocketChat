@@ -4,7 +4,11 @@ import java.net.Socket;
 
 public class Server implements Runnable{
 
-    public boolean isOn;
+    CommonSwitch cs;
+
+    Server(CommonSwitch cs){
+        this.cs = cs;
+    }
 
     public String getChatContent() {
         return chatContent;
@@ -16,49 +20,45 @@ public class Server implements Runnable{
 
     public String chatContent = "Welcome to the SocketChat!";
 
+    public void startServer() throws InterruptedException {
+
+        try {
+
+        ServerSocket serverSocket = new ServerSocket(7777);
+        Socket socket = serverSocket.accept();
+            System.out.println(cs.isOn()+"1");
+        System.out.println(cs.isOn());
+        InputStream is = socket.getInputStream();
+        OutputStream os = socket.getOutputStream();
+        DataInputStream dis = new DataInputStream(is);
+        DataOutputStream dos = new DataOutputStream(os);
+        String inputMessage;
+        System.out.println(cs.isOn());
+        while(cs.isOn()){
+            inputMessage = dis.readUTF();
+            System.out.println(">"+inputMessage);
+            Thread.sleep(111);
+            System.out.println(cs.isOn());
+        }
+        dis.close();
+        socket.close();
+        serverSocket.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //String inputLine; while ((inputLine = in.readLine()) != null) System.out.println(inputLine); in.close();
+
+    }
+
     @Override
     public void run() {
 
-        ServerSocket serverSocket = null;
-        Socket socket = null;
-        InputStream is = null;
-        OutputStream os = null;
-
-        try {
-            serverSocket = new ServerSocket(7777);
-            socket = serverSocket.accept();
-            is = socket.getInputStream();
-            os = socket.getOutputStream();
-        } catch (IOException e) {
+        if(cs.isOn()) try {
+            startServer();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        DataInputStream dis = new DataInputStream(is);
-        DataOutputStream dos = new DataOutputStream(os);
-
-        while(isOn) {
-
-            try {
-                if(dis.readUTF() == "exit") isOn = false;
-                setChatContent(getChatContent() + dis.readUTF() + "!");
-                String curChatContent = getChatContent();
-                System.out.println(curChatContent);
-                dos.writeUTF(curChatContent);
-                Thread.sleep(1000);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        try {
-            socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        System.out.println(cs.isOn());
     }
 }
