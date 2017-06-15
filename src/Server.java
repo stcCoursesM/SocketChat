@@ -2,11 +2,11 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class Server implements Runnable{
+public class Server implements Runnable {
 
     CommonSwitch cs;
 
-    Server(CommonSwitch cs){
+    Server(CommonSwitch cs) {
         this.cs = cs;
     }
 
@@ -24,25 +24,31 @@ public class Server implements Runnable{
 
         try {
 
-        ServerSocket serverSocket = new ServerSocket(7777);
-        Socket socket = serverSocket.accept();
-            System.out.println(cs.isOn()+"1");
-        System.out.println(cs.isOn());
-        InputStream is = socket.getInputStream();
-        OutputStream os = socket.getOutputStream();
-        DataInputStream dis = new DataInputStream(is);
-        DataOutputStream dos = new DataOutputStream(os);
-        String inputMessage;
-        System.out.println(cs.isOn());
-        while(cs.isOn()){
-            inputMessage = dis.readUTF();
-            System.out.println(">"+inputMessage);
-            Thread.sleep(111);
-            System.out.println(cs.isOn());
-        }
-        dis.close();
-        socket.close();
-        serverSocket.close();
+            ServerSocket serverSocketIn = new ServerSocket(7777);
+
+            Socket socketOut = new Socket("127.0.0.1", 5555);
+
+            Socket socketIn = serverSocketIn.accept();
+
+
+            InputStream is = socketIn.getInputStream();
+            OutputStream os = socketOut.getOutputStream();
+            DataInputStream dis = new DataInputStream(is);
+            DataOutputStream dos = new DataOutputStream(os);
+
+            String inputMessage;
+
+            while (cs.isOn()) {
+                dos.writeUTF("Ping!");
+                inputMessage = dis.readUTF();
+                if (inputMessage != null) System.out.println(">" + inputMessage);
+                Thread.sleep(111);
+                dos.flush();
+            }
+            dis.close();
+            dos.close();
+            socketIn.close();
+            socketOut.close();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -54,7 +60,7 @@ public class Server implements Runnable{
     @Override
     public void run() {
 
-        if(cs.isOn()) try {
+        if (cs.isOn()) try {
             startServer();
         } catch (InterruptedException e) {
             e.printStackTrace();
